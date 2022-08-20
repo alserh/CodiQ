@@ -1,0 +1,259 @@
+{
+	"info": {
+		"_postman_id": "4bd1b07e-3107-46ed-bc96-adff35fff5cf",
+		"name": "Test Task 1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22481455"
+	},
+	"item": [
+		{
+			"name": "Get Countries",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let countries = pm.response.json().map(country => country = country.name) \r",
+							"let country = countries[Math.floor(Math.random() * countries.length)]\r",
+							"let countryData = JSON.stringify(pm.response.json().filter(cntry => cntry.name === country)[0])\r",
+							"let searchKeysArr = Object.keys(JSON.parse(pm.collectionVariables.get(\"testValuesKeys\")))\r",
+							"console.log(`The Control Country (ctrlCountry) is ${country}`)\r",
+							"\r",
+							"//Setting collection variables\r",
+							"pm.collectionVariables.set(\"ctrlCountry\", country)\r",
+							"pm.collectionVariables.set(\"ctrlCountryData\", countryData)\r",
+							"\r",
+							"pm.test(\"Status code for 'ALL' is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Object with Data is returned\", () => {\r",
+							"    pm.expect(typeof pm.response.json() === \"object\" && Object.keys(pm.response.json()).length > 0).to.eql(true);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"All items got Searcheable Keys\", () => {\r",
+							"    let state = []\r",
+							"    for (item of pm.response.json()) {\r",
+							"        for (key of searchKeysArr) {\r",
+							"            if (Object.keys(item).find(i => (i.toLowerCase().includes(key.slice(0, -1)))) === undefined) {\r",
+							"                console.log(`\"${key}\" is missing for ${item.name}!`) //the missing key is in console\r",
+							"                state.push(false)\r",
+							"            }\r",
+							"        }\r",
+							"    }      \r",
+							"    pm.expect(state.length === 0).to.eql(true);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"No 'INT' in Country Names\", () => {\r",
+							"    if (countries.every(cntry => typeof cntry === \"string\") === true) {\r",
+							"        pm.expect(countries.find(letter => letter.match(/\\d/))).to.eql(undefined);\r",
+							"    } else (pm.expect.fail(\"Unexpected type of CountryName\"))\r",
+							"});\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v2/all",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v2",
+						"all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Exp Results (full vals)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const result = pm.response.json()[0]\r",
+							"const uriSet = Object.entries(JSON.parse(pm.collectionVariables.get(\"testValuesKeys\")))\r",
+							"\r",
+							"//Setting collection variables\r",
+							"pm.collectionVariables.set(\"nameValue\", result.name)\r",
+							"pm.collectionVariables.set(\"alphaCodeValue\", result[`alpha${Math.round(Math.random() + 2)}Code`])\r",
+							"pm.collectionVariables.set(\"currencyValue\", result.currencies[Math.floor(Math.random() * result.currencies.length)].code)\r",
+							"pm.collectionVariables.set(\"languageValue\", result.languages[Math.floor(Math.random() * result.languages.length)][`iso639_${Math.round(1 + Math.random())}`]) \r",
+							"pm.collectionVariables.set(\"capitalValue\", result.capital)\r",
+							"pm.collectionVariables.set(\"callingcodeValue\", result.callingCodes[Math.floor(Math.random() * result.callingCodes.length)])\r",
+							"\r",
+							"pm.test(\"Status code for 'NAME' is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// A set of tests to check if correspondent 'search by particular value' result is returned\r",
+							"for (entry of uriSet) {\r",
+							"    let jsonData \r",
+							"    pm.test(`Basic Keys Search: by ${entry[1]}`, function () {\r",
+							"        pm.sendRequest(`https://restcountries.com/v2/${entry[0]}/${pm.collectionVariables.get(entry[1])}`, function (err, response) {\r",
+							"        jsonData = response.json();\r",
+							"        pm.expect(JSON.stringify(jsonData)).to.contain(JSON.stringify(result));\r",
+							"        });    \r",
+							"    });\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v2/name/{{ctrlCountry}}",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v2",
+						"name",
+						"{{ctrlCountry}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Exp Results (varied val in : Name)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const cntry = pm.collectionVariables.get(\"ctrlCountry\")\r",
+							"function consecutivePairs(countryName) {\r",
+							"    let result = []\r",
+							"    for (letterIndex in countryName){\r",
+							"        let leIndex = parseInt(letterIndex)\r",
+							"        if (leIndex < countryName.length - 1)\r",
+							"        result.push(countryName[leIndex] + countryName[leIndex + 1])\r",
+							"    }\r",
+							"    return result\r",
+							"}\r",
+							"\r",
+							"// constructing our set of letter pairs for PARTIAL search\r",
+							"const queryData = consecutivePairs(cntry)\r",
+							"console.log(queryData)\r",
+							"\r",
+							"//testing if PARTIAL search results contain control country data\r",
+							"for (letrPair of queryData) {\r",
+							"    let jsonData \r",
+							"    pm.test(`Partial \"Name\" Search: \"${letrPair}\"`, function () {\r",
+							"        pm.sendRequest(`https://restcountries.com/v2/name/${letrPair}`, function (err, response) {\r",
+							"        jsonData = response.json();\r",
+							"        pm.expect(JSON.stringify(jsonData)).to.contain(pm.collectionVariables.get(\"ctrlCountryData\"));\r",
+							"        });    \r",
+							"    });\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v2/name/{{ctrlCountry}}",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v2",
+						"name",
+						"{{ctrlCountry}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "ctrlCountry",
+			"value": ""
+		},
+		{
+			"key": "ctrlCountryData",
+			"value": ""
+		},
+		{
+			"key": "testValuesKeys",
+			"value": "{\"name\":\"nameValue\",\"alpha\":\"alphaCodeValue\",\"currency\":\"currencyValue\",\"lang\":\"languageValue\",\"capital\":\"capitalValue\",\"callingcodeValue\":\"callingCodes\"}",
+			"type": "string"
+		},
+		{
+			"key": "nameValue",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "alphaCodeValue",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "currencyValue",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "languageValue",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "capitalValue",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "callingcodeValue",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

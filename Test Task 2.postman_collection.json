@@ -1,0 +1,573 @@
+{
+	"info": {
+		"_postman_id": "9f55c073-5bfa-4156-bd14-aea8e2ecdeff",
+		"name": "Test Task 2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22481455"
+	},
+	"item": [
+		{
+			"name": "Post a User",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"curGender\", [\"male\", \"female\"][Math.round(Math.random())])\r",
+							"pm.collectionVariables.set(\"curStatus\", [\"active\", \"inactive\"][Math.round(Math.random())])"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json()\r",
+							"pm.collectionVariables.set(\"curGender\", response.gender)\r",
+							"pm.collectionVariables.set(\"curStatus\", response.status)\r",
+							"pm.collectionVariables.set(\"curID\", response.id)\r",
+							"pm.collectionVariables.set(\"curEmail\", response.email)\r",
+							"pm.collectionVariables.set(\"curName\", response.name)\r",
+							"pm.collectionVariables.set(\"entityLink\", pm.response.headers.filter(header => header.key === \"location\")[0].value)\r",
+							"\r",
+							"//Creation succsessful if all filled with valid data\r",
+							"pm.test(\"Status code is 201 - USER Created\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"//Assertion that created entity contains data from input\r",
+							"pm.test(\"Generated data is stored and depicted in body properly\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(Object.values(jsonData).slice(1, jsonData.length)).to.eql([\r",
+							"        pm.collectionVariables.get(\"curName\"),\r",
+							"        pm.collectionVariables.get(\"curEmail\"),\r",
+							"        pm.collectionVariables.get(\"curGender\"),\r",
+							"        pm.collectionVariables.get(\"curStatus\"),\r",
+							"    ]);\r",
+							"});\r",
+							"\r",
+							"// //Unsuccsessful creation if any field is omitted (not working as intended)\r",
+							"// for (key of Object.keys(response).slice(1, Object.keys(response).length)) {\r",
+							"//     let variables = {\r",
+							"//         email: \"ran@dom.em\", //pm.variables.get(\"$randomEmail\"),\r",
+							"//         name: \"Ra Ndom Nam3\",//pm.variables.get(\"$randomFullName\"),\r",
+							"//         gender: pm.collectionVariables.get(\"curGender\"),\r",
+							"//         status: pm.collectionVariables.get(\"curStatus\") \r",
+							"//     };\r",
+							"//     let errResponse = {};\r",
+							"//     let errKeyList = Object.keys(response).slice(1, Object.keys(response).length).filter(k => k !== key);\r",
+							"//     errKeyList.map(errKey => errResponse[`${errKey}`] = variables[`${errKey}`]);\r",
+							"//     console.log(errResponse)\r",
+							"//     let requestCreds = {\r",
+							"//         url: \"https://gorest.co.in/public/v2/users\",\r",
+							"//         method: \"post\",\r",
+							"//         authorization: \"Bearer 49baf0ddc40a7ffa1b3cb6a2ef3acb2f58fb703c5567dd37cb4f71a624c7b794\",\r",
+							"//         body: {\r",
+							"//             mode: \"raw\",\r",
+							"//             raw: JSON.stringify(errResponse)            \r",
+							"//         }\r",
+							"//     }\r",
+							"//     pm.test(`POSTing without \"${key}\"`, () => {\r",
+							"//         pm.sendRequest(requestCreds, function (err, response) {\r",
+							"//             console.log(response.json())\r",
+							"//         });\r",
+							"//     pm.expect(result).to.have.status(402);\r",
+							"// });\r",
+							"// }\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "{{$randomFirstName}} {{$randomLastName}}",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "{{$randomEmail}}",
+							"type": "text"
+						},
+						{
+							"key": "gender",
+							"value": "{{curGender}}",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "{{curStatus}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/users",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Created User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Succsessful GET by ID and contains all info\", function () {\r",
+							"    pm.response.to.have.status(200) && Object.values(pm.response.json()) === [\r",
+							"        pm.collectionVariables.get(\"curName\"),\r",
+							"        pm.collectionVariables.get(\"curEmail\"),\r",
+							"        pm.collectionVariables.get(\"curGender\"),\r",
+							"        pm.collectionVariables.get(\"curStatus\"),\r",
+							"        pm.collectionVariables.get(\"curID\"),\r",
+							"    ]\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/users/{{curID}}",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"users",
+						"{{curID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Editing User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"ctrlEntity\", JSON.stringify(pm.response.json()))\r",
+							"const prevValues = [\r",
+							"    pm.collectionVariables.get(\"curName\"),\r",
+							"    pm.collectionVariables.get(\"curEmail\"),\r",
+							"    pm.collectionVariables.get(\"curGender\"),\r",
+							"    pm.collectionVariables.get(\"curStatus\"),\r",
+							"    pm.collectionVariables.get(\"curID\")\r",
+							"]\r",
+							"\r",
+							"pm.test(\"Altering all fields process OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"//(virtually) All changes took place (aren't equal to prev. values)\r",
+							"pm.test(\"Entity edited (overall)\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(Object.values(jsonData) !== prevValues).to.eql(true);\r",
+							"});\r",
+							"\r",
+							"// No other entity with same credentials exists in 'ALL'\r",
+							"let responseData\r",
+							"pm.test(\"No older entity with same credentials exists in 'ALL'\", function () {    \r",
+							"    let jsonData = pm.response.json();\r",
+							"    delete jsonData.id\r",
+							"    pm.sendRequest(\"https://gorest.co.in/public/v2/users\", function (err, response) {\r",
+							"    responseData = response.json()    \r",
+							"    pm.expect(JSON.stringify(responseData).includes(JSON.stringify(jsonData).slice(1, -1))).to.eql(false);  \r",
+							"    });  \r",
+							"});\r",
+							"\r",
+							"pm.collectionVariables.set(\"curEmail\", pm.response.json().email)\r",
+							"pm.collectionVariables.set(\"curName\", pm.response.json().name)\r",
+							"pm.collectionVariables.set(\"curStatus\", pm.response.json().status)\r",
+							"pm.collectionVariables.set(\"curGender\", pm.response.json().gender)\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"randGender\", [\"male\", \"female\"][Math.round(Math.random())])\r",
+							"pm.collectionVariables.set(\"randStatus\", [\"active\", \"inactive\"][Math.round(Math.random())])"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "{{$randomFullName}}",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "{{$randomEmail}}",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "{{randStatus}}",
+							"type": "text"
+						},
+						{
+							"key": "gender",
+							"value": "{{randGender}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/users/{{curID}}",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"users",
+						"{{curID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Err Email Format",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"responseBody = JSON.stringify(pm.response.json()) //may be any value that is meaningful for the situation. This is just for test purposes. \r",
+							"\r",
+							"pm.test(\"Email format is strict\", function () {\r",
+							"    pm.response.to.have.status(422);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Error Message about erroneous 'EMAIL'\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(JSON.stringify(jsonData)).to.eql(responseBody);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"randGender\", [\"male\", \"female\"][Math.round(Math.random())])\r",
+							"pm.collectionVariables.set(\"randStatus\", [\"active\", \"inactive\"][Math.round(Math.random())])"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "{{$randomBs}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/users/{{curID}}",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"users",
+						"{{curID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Non Unique New Entity",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"curGender\", [\"male\", \"female\"][Math.round(Math.random())])\r",
+							"pm.collectionVariables.set(\"curStatus\", [\"active\", \"inactive\"][Math.round(Math.random())])"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"responseBody = JSON.stringify(pm.response.json())\r",
+							"\r",
+							"//Might as well add \"uniqueness validation by email only\" check later. \r",
+							"pm.test(\"Cannot Create Same Entity\", function () {\r",
+							"    pm.response.to.have.status(422);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "{{curName}}",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "{{curEmail}}",
+							"type": "text"
+						},
+						{
+							"key": "gender",
+							"value": "{{curGender}}",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "{{curStatus}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/users",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Deleted",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"curGender\", [\"male\", \"female\"][Math.round(Math.random())])\r",
+							"pm.collectionVariables.set(\"curStatus\", [\"active\", \"inactive\"][Math.round(Math.random())])"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204 - Deleted\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "{{curName}}",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "{{curEmail}}",
+							"type": "text"
+						},
+						{
+							"key": "gender",
+							"value": "{{curGender}}",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "{{curStatus}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/users/{{curID}}",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"users",
+						"{{curID}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "5b7bd1846bf22c9ed14ba39c8c17aa0ad28e53bee070205ab2d9015fb298bc41",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "curGender",
+			"value": "female"
+		},
+		{
+			"key": "curStatus",
+			"value": "active"
+		},
+		{
+			"key": "curID",
+			"value": ""
+		},
+		{
+			"key": "curEmail",
+			"value": "email123321@test.com"
+		},
+		{
+			"key": "curName",
+			"value": "Vasilina Leonidovna Jmenya"
+		},
+		{
+			"key": "entityLink",
+			"value": ""
+		},
+		{
+			"key": "randName",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "randEmail",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "randStatus",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "randGender",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "randID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ctrlEntity",
+			"value": ""
+		}
+	]
+}
