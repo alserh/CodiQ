@@ -8,7 +8,7 @@ Have a great day!
 
 <dl>
   <dt>Test Task 1 - <a href = "https://restcountries.com/">REST Countries</a></dt>
-  <dd><p>Well, this is where things started to get a bit out of hand. Initially I was a bit preoccupied to properly figure the nature of the task. So, when I was a couple of hours in and decided to read the task again I was very greedy just to scrap it all. That's why it is here. </p></dd>
+  <dd><p>Well, this is where things started to get out of hand. Initially I was a bit preoccupied to properly figure the nature of the task. So, when I was a couple of hours in and decided to read the task again I was very greedy just to scrap it all. That's why it is here. </p></dd>
   <dt>Test Task 2 - <a href = "https://gorest.co.in/">REST API for Testing and Prototyping</a></dt>
   <dd><p>So, when I approached the most meaningful part of task I was able to discover some biggest lacks: 
   <ul>
