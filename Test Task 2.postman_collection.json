@@ -7,6 +7,69 @@
 	},
 	"item": [
 		{
+			"name": "Data Structure and Get All",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const allUsers = pm.response.json()\r",
+							"\r",
+							"pm.test(\"We got it - status is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Data structure test\", () => {\r",
+							"    let keysAmount = allUsers.every(entry => Object.keys(entry).length == 5);\r",
+							"    console.log(`Each entity has 5 keys: ${keysAmount}`);\r",
+							"\r",
+							"    let valuesAmount = allUsers.every(entry => Object.values(entry).length == 5 \r",
+							"                                        && \r",
+							"                                        Object.values(entry).find(value => value === null) == undefined);\r",
+							"    console.log(`Each entity has 5 values and no 'NULL': ${valuesAmount}`);\r",
+							"\r",
+							"    let emailFormat = allUsers.every(entry => /[_a-zA-Z\\d]*@[a-zA-Z\\d]*\\.[a-z]{2,4}/.test(entry.email) == true)\r",
+							"    console.log(`Each email is an email format: ${emailFormat}`)\r",
+							"\r",
+							"    let genderConvention = allUsers.every(entry => entry.gender == \"male\" || entry.gender == \"female\");\r",
+							"    console.log(`Gender convention implemented: ${genderConvention}`);\r",
+							"\r",
+							"    pm.expect(\r",
+							"        keysAmount\r",
+							"        &&\r",
+							"        valuesAmount\r",
+							"        &&\r",
+							"        emailFormat\r",
+							"        &&\r",
+							"        genderConvention\r",
+							"    ).to.eql(true);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/users",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Post a User",
 			"event": [
 				{
@@ -177,11 +240,11 @@
 						"exec": [
 							"pm.collectionVariables.set(\"ctrlEntity\", JSON.stringify(pm.response.json()))\r",
 							"const prevValues = [\r",
+							"    pm.collectionVariables.get(\"curID\"),\r",
 							"    pm.collectionVariables.get(\"curName\"),\r",
 							"    pm.collectionVariables.get(\"curEmail\"),\r",
 							"    pm.collectionVariables.get(\"curGender\"),\r",
-							"    pm.collectionVariables.get(\"curStatus\"),\r",
-							"    pm.collectionVariables.get(\"curID\")\r",
+							"    pm.collectionVariables.get(\"curStatus\")    \r",
 							"]\r",
 							"\r",
 							"pm.test(\"Altering all fields process OK\", function () {\r",
@@ -194,14 +257,17 @@
 							"    pm.expect(Object.values(jsonData) !== prevValues).to.eql(true);\r",
 							"});\r",
 							"\r",
-							"// No other entity with same credentials exists in 'ALL'\r",
+							"// No other entity with same credentials exists in 'ALL' (Frankly, I can't figure out why this GET does not return the same as in browser, but here's the idea of the check)\r",
 							"let responseData\r",
-							"pm.test(\"No older entity with same credentials exists in 'ALL'\", function () {    \r",
-							"    let jsonData = pm.response.json();\r",
-							"    delete jsonData.id\r",
+							"pm.test(\"No older entity with previous credentials exists in 'ALL'\", function () {    \r",
+							"    let oldData = {}\r",
+							"    let keys = [\"name\", \"email\", \"gender\", \"status\"]\r",
+							"    keys.forEach((key, index)=> {\r",
+							"        oldData[key] = prevValues[index + 1]\r",
+							"    })\r",
 							"    pm.sendRequest(\"https://gorest.co.in/public/v2/users\", function (err, response) {\r",
-							"    responseData = response.json()    \r",
-							"    pm.expect(JSON.stringify(responseData).includes(JSON.stringify(jsonData).slice(1, -1))).to.eql(false);  \r",
+							"    responseData = response.json()   \r",
+							"    pm.expect(JSON.stringify(responseData).includes(JSON.stringify(oldData).slice(1, -1))).to.eql(false);  \r",
 							"    });  \r",
 							"});\r",
 							"\r",
